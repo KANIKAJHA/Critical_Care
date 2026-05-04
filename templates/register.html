@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CriticalCare | Register</title>
+  <style>
+    :root {
+      --bg: #08111f;
+      --panel: #101b2e;
+      --panel-2: #14233a;
+      --text: #eef5ff;
+      --muted: #91a0b8;
+      --line: rgba(255,255,255,.12);
+      --accent: #24c6dc;
+      --accent-2: #4ade80;
+      --danger: #fb7185;
+      --success: #86efac;
+      --shadow: 0 24px 80px rgba(0,0,0,.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(135deg, rgba(74,222,128,.12), transparent 36%),
+        linear-gradient(315deg, rgba(36,198,220,.14), transparent 32%),
+        var(--bg);
+    }
+
+    .shell {
+      width: min(960px, 100%);
+      display: grid;
+      grid-template-columns: .9fr 1.1fr;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(16,27,46,.92);
+      box-shadow: var(--shadow);
+    }
+
+    .form-panel { padding: 48px; background: rgba(8,17,31,.42); }
+    .intro {
+      padding: 48px;
+      background: linear-gradient(160deg, rgba(74,222,128,.12), rgba(36,198,220,.10));
+      border-left: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 56px;
+    }
+
+    .mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      color: #06121f;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      font-weight: 900;
+    }
+
+    h1 { margin: 0 0 14px; font-size: clamp(32px, 5vw, 52px); line-height: 1; letter-spacing: 0; }
+    h2 { margin: 0 0 8px; font-size: 26px; }
+    p { margin: 0; color: var(--muted); line-height: 1.7; font-size: 15px; }
+    .form-copy { margin-bottom: 28px; }
+
+    form { display: grid; gap: 16px; }
+    label { display: grid; gap: 8px; color: #cfe0f7; font-size: 13px; font-weight: 700; }
+    input {
+      width: 100%;
+      padding: 14px 15px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      outline: none;
+      color: var(--text);
+      background: var(--panel-2);
+      font: inherit;
+    }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(36,198,220,.12); }
+
+    .message {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.4;
+      margin-bottom: 16px;
+      background: rgba(251,113,133,.12);
+      border: 1px solid rgba(251,113,133,.28);
+      color: #fecdd3;
+    }
+    .message.show { display: block; }
+    .message.good {
+      background: rgba(74,222,128,.12);
+      border-color: rgba(74,222,128,.28);
+      color: var(--success);
+    }
+
+    button {
+      margin-top: 4px;
+      padding: 14px 16px;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+      color: #06121f;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+    button:disabled { opacity: .65; cursor: wait; }
+
+    .switch {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .switch a { color: var(--accent); font-weight: 800; text-decoration: none; }
+
+    .facts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 34px;
+    }
+    .fact {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(8,17,31,.35);
+    }
+    .fact strong { display: block; margin-bottom: 6px; color: var(--text); }
+    .fact span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+    @media (max-width: 760px) {
+      .shell { grid-template-columns: 1fr; }
+      .intro { padding: 32px; border-left: 0; border-top: 1px solid var(--line); }
+      .brand { margin-bottom: 28px; }
+      .form-panel { padding: 32px; }
+      .facts { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="form-panel">
+      <h2>Create account</h2>
+      <p class="form-copy">Judges can register a fresh account and enter the live dashboard immediately.</p>
+      <div class="message" id="message"></div>
+
+      <form id="register-form">
+        <label>
+          Username
+          <input id="username" name="username" type="text" minlength="3" autocomplete="username" required>
+        </label>
+        <label>
+          Password
+          <input id="password" name="password" type="password" minlength="4" autocomplete="new-password" required>
+        </label>
+        <label>
+          Confirm password
+          <input id="confirm-password" name="confirm-password" type="password" minlength="4" autocomplete="new-password" required>
+        </label>
+        <button id="submit-btn" type="submit">Create Account</button>
+      </form>
+
+      <div class="switch">Already registered? <a href="/login">Sign in</a></div>
+    </section>
+
+    <section class="intro">
+      <div class="brand"><div class="mark">+</div>CriticalCare</div>
+      <h1>On-the-spot demo registration</h1>
+      <p>Each new login is saved in the local SQLite database, so your demo does not depend on hard-coded credentials.</p>
+      <div class="facts">
+        <div class="fact"><strong>Database</strong><span>Stored in criticalcare.db at the project root.</span></div>
+        <div class="fact"><strong>Security</strong><span>Passwords are salted and hashed before storage.</span></div>
+        <div class="fact"><strong>Session</strong><span>Successful registration logs the user in.</span></div>
+        <div class="fact"><strong>Dashboard</strong><span>Existing patient screens stay unchanged.</span></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("register-form");
+    const button = document.getElementById("submit-btn");
+    const message = document.getElementById("message");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      message.className = "message";
+
+      const password = document.getElementById("password").value;
+      const confirm = document.getElementById("confirm-password").value;
+      if (password !== confirm) {
+        message.textContent = "Passwords do not match.";
+        message.classList.add("show");
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = "Creating...";
+
+      try {
+        const response = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: document.getElementById("username").value.trim(),
+            password
+          })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          message.textContent = "Account created. Opening dashboard...";
+          message.classList.add("show", "good");
+          window.setTimeout(() => window.location.href = "/", 450);
+          return;
+        }
+        message.textContent = data.error || "Registration failed. Please try again.";
+        message.classList.add("show");
+      } catch (error) {
+        message.textContent = "Server is not reachable. Please run the Flask app first.";
+        message.classList.add("show");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Create Account";
+      }
+    });
+  </script>
+</body>
+</html>

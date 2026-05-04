@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CriticalCare | Login</title>
+  <style>
+    :root {
+      --bg: #08111f;
+      --panel: #101b2e;
+      --panel-2: #14233a;
+      --text: #eef5ff;
+      --muted: #91a0b8;
+      --line: rgba(255,255,255,.12);
+      --accent: #24c6dc;
+      --accent-2: #4ade80;
+      --danger: #fb7185;
+      --shadow: 0 24px 80px rgba(0,0,0,.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(135deg, rgba(36,198,220,.14), transparent 36%),
+        linear-gradient(315deg, rgba(74,222,128,.10), transparent 32%),
+        var(--bg);
+    }
+
+    .shell {
+      width: min(960px, 100%);
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(16,27,46,.92);
+      box-shadow: var(--shadow);
+    }
+
+    .intro {
+      padding: 48px;
+      background: linear-gradient(160deg, rgba(36,198,220,.16), rgba(74,222,128,.08));
+      border-right: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 56px;
+    }
+
+    .mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      color: #06121f;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      font-weight: 900;
+    }
+
+    h1 { margin: 0 0 14px; font-size: clamp(32px, 5vw, 52px); line-height: 1; letter-spacing: 0; }
+    p { margin: 0; color: var(--muted); line-height: 1.7; font-size: 15px; }
+
+    .checks {
+      display: grid;
+      gap: 14px;
+      margin-top: 34px;
+      color: #cfe0f7;
+      font-size: 14px;
+    }
+
+    .check { display: flex; gap: 10px; align-items: center; }
+    .check span { color: var(--accent-2); font-weight: 800; }
+
+    .form-panel { padding: 48px; background: rgba(8,17,31,.42); }
+    .form-title { margin: 0 0 8px; font-size: 26px; }
+    .form-copy { margin-bottom: 28px; }
+
+    form { display: grid; gap: 16px; }
+    label { display: grid; gap: 8px; color: #cfe0f7; font-size: 13px; font-weight: 700; }
+    input {
+      width: 100%;
+      padding: 14px 15px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      outline: none;
+      color: var(--text);
+      background: var(--panel-2);
+      font: inherit;
+    }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(36,198,220,.12); }
+
+    .message {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.4;
+      background: rgba(251,113,133,.12);
+      border: 1px solid rgba(251,113,133,.28);
+      color: #fecdd3;
+    }
+    .message.show { display: block; }
+
+    button {
+      margin-top: 4px;
+      padding: 14px 16px;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+      color: #06121f;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+    button:disabled { opacity: .65; cursor: wait; }
+
+    .switch {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .switch a { color: var(--accent); font-weight: 800; text-decoration: none; }
+
+    @media (max-width: 760px) {
+      .shell { grid-template-columns: 1fr; }
+      .intro { padding: 32px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .brand { margin-bottom: 28px; }
+      .form-panel { padding: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="intro">
+      <div class="brand"><div class="mark">+</div>CriticalCare</div>
+      <h1>Secure ICU dashboard access</h1>
+      <p>Sign in to view patient risk scores, vitals, bed status, and real-time ward summaries.</p>
+      <div class="checks">
+        <div class="check"><span>OK</span> SQLite user database</div>
+        <div class="check"><span>OK</span> Passwords stored as hashes</div>
+        <div class="check"><span>OK</span> Dashboard opens after login</div>
+      </div>
+    </section>
+
+    <section class="form-panel">
+      <h2 class="form-title">Sign in</h2>
+      <p class="form-copy">Use the account created during registration.</p>
+      <div class="message" id="message"></div>
+
+      <form id="login-form">
+        <label>
+          Username
+          <input id="username" name="username" type="text" autocomplete="username" required>
+        </label>
+        <label>
+          Password
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <button id="submit-btn" type="submit">Sign In</button>
+      </form>
+
+      <div class="switch">New judge/demo user? <a href="/register">Create an account</a></div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("login-form");
+    const button = document.getElementById("submit-btn");
+    const message = document.getElementById("message");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      message.classList.remove("show");
+      button.disabled = true;
+      button.textContent = "Signing in...";
+
+      try {
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: document.getElementById("username").value.trim(),
+            password: document.getElementById("password").value
+          })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          window.location.href = "/";
+          return;
+        }
+        message.textContent = data.error || "Login failed. Please try again.";
+        message.classList.add("show");
+      } catch (error) {
+        message.textContent = "Server is not reachable. Please run the Flask app first.";
+        message.classList.add("show");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Sign In";
+      }
+    });
+  </script>
+</body>
+</html>

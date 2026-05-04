@@ -1,0 +1,360 @@
+CriticalCare Project Overview
+=============================
+
+1. Project Summary
+------------------
+CriticalCare is an AI-powered ICU patient monitoring dashboard. It uses a trained machine learning model to estimate a patient stability score from vital signs, then displays the patient status as Stable, Moderate, or Critical.
+
+The project is designed for a hospital/ICU use case where doctors can quickly scan patient risk, inspect individual patient vitals, and update vitals to re-run prediction.
+
+
+2. Main Technologies Used
+-------------------------
+- Python
+- Flask for the web backend
+- Pandas for dataset loading and preprocessing
+- Scikit-learn RandomForestClassifier for ML prediction
+- Joblib for loading/saving the trained model
+- SQLite for login/register user database
+- HTML, CSS, and JavaScript for the dashboard UI
+
+
+3. Important Project Files
+--------------------------
+- app.py
+  Main Flask application. It loads the ML model, loads dataset-backed patients, handles login/register, serves the dashboard, and exposes API routes.
+
+- main.py
+  Training pipeline runner. It loads the dataset, preprocesses it, trains the model, and evaluates it.
+
+- model.pkl
+  Saved trained machine learning model.
+
+- data/human_vital_signs_dataset_2024.csv
+  Main dataset used for the ML project and patient dashboard data.
+
+- src/data_preprocessing.py
+  Loads CSV data and performs preprocessing.
+
+- src/train_model.py
+  Trains the RandomForestClassifier.
+
+- src/evaluate_model.py
+  Evaluates model accuracy.
+
+- templates/login.html
+  Login page.
+
+- templates/register.html
+  Register page.
+
+- templates/index.html
+  Main ICU dashboard page.
+
+- static/main.js
+  Frontend logic for fetching patients, rendering cards, opening details, editing vitals, and updating charts.
+
+- static/style.css
+  Dashboard styling, patient cards, detail panel, visual gauges, and animations.
+
+- criticalcare.db
+  SQLite database where registered users are stored.
+
+
+4. Dataset Usage
+----------------
+The project uses the provided dataset only:
+
+data/human_vital_signs_dataset_2024.csv
+
+The dashboard patients are loaded from the first 20 valid rows of this dataset after preprocessing. No random patient vitals are used for the initial dashboard.
+
+Important dataset columns include:
+- Patient ID
+- Heart Rate
+- Respiratory Rate
+- Body Temperature
+- Oxygen Saturation
+- Systolic Blood Pressure
+- Diastolic Blood Pressure
+- Age
+- Gender
+- Weight (kg)
+- Height (m)
+- Derived_HRV
+- Derived_Pulse_Pressure
+- Derived_BMI
+- Derived_MAP
+- Risk Category
+
+
+5. Preprocessing
+----------------
+The preprocessing happens in src/data_preprocessing.py.
+
+Steps:
+- Load the CSV using pandas.
+- Drop Timestamp because it is not used as a prediction feature.
+- Convert Gender:
+  - Male -> 0
+  - Female -> 1
+- Convert Risk Category:
+  - Low Risk -> 0
+  - High Risk -> 1
+- Drop null rows.
+
+This same preprocessing is used in the Flask app, so the dashboard is connected to the ML pipeline.
+
+
+6. ML Model
+-----------
+The model is a RandomForestClassifier from scikit-learn.
+
+Training file:
+src/train_model.py
+
+Training process:
+- X contains all model features except Risk Category and Patient ID.
+- y is Risk Category.
+- Data is split into train/test using train_test_split.
+- Model:
+  - RandomForestClassifier
+  - n_estimators=100
+  - max_depth=5
+  - random_state=42
+- The trained model is saved as model.pkl.
+
+
+7. Stability Score Logic
+------------------------
+The model predicts the probability of High Risk using:
+
+model.predict_proba(features)[0][1]
+
+The stability score is calculated as:
+
+score = int((1 - high_risk_probability) * 100)
+
+Meaning:
+- Higher score means more stable.
+- Lower score means more critical.
+
+Status thresholds:
+- Score >= 80: Stable
+- Score >= 50 and < 80: Moderate
+- Score < 50: Critical
+
+
+8. Dashboard Behavior
+---------------------
+The dashboard shows 20 ICU beds/patients from the dataset.
+
+Each patient card shows:
+- Bed number
+- Patient name
+- Stability score
+- Status: Stable, Moderate, or Critical
+- Quick vital preview
+
+Critical cards blink to visually alert the doctor.
+
+The summary section shows:
+- Total patients
+- Stable count
+- Moderate count
+- Critical count
+- Ward averages
+- Score distribution
+
+
+9. Patient Detail Panel
+-----------------------
+When a patient card is clicked, a right-side detail panel opens.
+
+The panel shows:
+- Patient name
+- Bed number
+- Status badge
+- Health score gauge
+- Current dataset vital gauges
+- Full patient vitals
+- Derived indicators
+- Edit Vitals button
+
+The visual gauges are doctor-friendly and based on the selected patient's actual dataset row or model output. They do not show fake ECG or fake historical values.
+
+Visual values shown:
+- Stability score
+- Heart rate
+- Respiratory rate
+- Oxygen saturation
+- Blood pressure
+- Body temperature
+
+
+10. Edit Vitals Feature
+-----------------------
+The dashboard allows the user to edit a patient's vitals and run the model again.
+
+When vitals are submitted:
+- Flask receives the new values through /api/predict.
+- app.py builds the required ML feature row.
+- model.pkl predicts high-risk probability.
+- The new stability score and status are returned.
+- The dashboard updates the patient card and detail view.
+
+Important note for judges:
+The initial dashboard is dataset-backed. The edit feature is an interactive demonstration of how a doctor could enter updated vitals and get a fresh model prediction.
+
+
+11. Login and Registration
+--------------------------
+The project has a login/register system so judges can create a user account during the demo.
+
+Routes:
+- /login
+- /register
+- /logout
+- /api/login
+- /api/register
+
+User data is stored in:
+criticalcare.db
+
+Passwords are not stored directly. They are salted and hashed using PBKDF2 SHA-256.
+
+
+12. Main API Routes
+-------------------
+- GET /
+  Opens dashboard. Requires login.
+
+- GET /login
+  Login page.
+
+- GET /register
+  Register page.
+
+- POST /api/login
+  Checks username/password and starts session.
+
+- POST /api/register
+  Creates user and starts session.
+
+- GET /api/patients
+  Returns all 20 dashboard patients.
+
+- GET /api/patient/<bed>
+  Returns one patient by bed number.
+
+- POST /api/predict
+  Receives updated vitals, runs ML model, and updates prediction.
+
+- GET /api/stats
+  Returns dashboard statistics.
+
+
+13. How to Run the Project
+--------------------------
+Open PowerShell in the project folder:
+
+c:\Users\KANIKA\Desktop\critical_care\modelCritic
+
+Run:
+
+.\venv\Scripts\python.exe app.py
+
+Then open:
+
+http://127.0.0.1:5000
+
+
+14. Demo Flow for Judges
+------------------------
+Suggested demo:
+
+1. Start the Flask app.
+2. Open http://127.0.0.1:5000.
+3. Register a new account.
+4. Dashboard opens after login.
+5. Show patient cards and risk categories.
+6. Explain that the patients come from the dataset.
+7. Click a critical patient card.
+8. Show patient details, vitals, derived indicators, and visual gauges.
+9. Explain stability score:
+   Score = (1 - High Risk Probability) * 100
+10. Edit vitals for one patient.
+11. Run prediction again and show updated score/status.
+
+
+15. Judge Q&A
+-------------
+Q: What problem does this solve?
+A: It helps ICU staff quickly identify patient stability and prioritize critical cases using vital-sign-based ML prediction.
+
+Q: What ML algorithm is used?
+A: RandomForestClassifier.
+
+Q: Why Random Forest?
+A: It works well for tabular medical-style data, handles nonlinear relationships, and gives stable performance without heavy tuning.
+
+Q: What is the target variable?
+A: Risk Category, mapped as Low Risk = 0 and High Risk = 1.
+
+Q: What does the stability score mean?
+A: It is derived from the model's predicted high-risk probability. A lower high-risk probability gives a higher stability score.
+
+Q: Is the dashboard using random data?
+A: No. The initial dashboard loads patients from the provided CSV dataset after preprocessing.
+
+Q: Are the visual graphs fake?
+A: No. They show current values from the selected patient's dataset row and the ML score. The project avoids fake history or simulated ECG to stay medically honest.
+
+Q: Where are user accounts stored?
+A: In the local SQLite database criticalcare.db.
+
+Q: Are passwords secure?
+A: Passwords are salted and hashed using PBKDF2 SHA-256 before storage.
+
+Q: Can the model update prediction after changing vitals?
+A: Yes. The /api/predict route rebuilds the model features from entered vitals and runs model.pkl again.
+
+Q: What derived features are used?
+A: Derived_HRV, Derived_Pulse_Pressure, Derived_BMI, and Derived_MAP are part of the model feature set.
+
+Q: What are the status thresholds?
+A: Stable is score >= 80, Moderate is score >= 50, and Critical is score < 50.
+
+Q: Is this ready for real hospital use?
+A: No. It is a project/demo prototype. Real clinical deployment would need doctor validation, regulatory review, security hardening, model monitoring, and real-time hospital data integration.
+
+
+16. Key Strengths to Mention
+----------------------------
+- Uses a real provided dataset.
+- Uses a trained ML model, not hardcoded labels.
+- Clean ICU dashboard interface.
+- Login/register with SQLite storage.
+- Dataset-backed patient cards.
+- Doctor-friendly status categories.
+- Critical patients are visually highlighted.
+- Patient detail panel shows vitals, derived indicators, and current visual gauges.
+- Interactive vital update can re-run model prediction.
+
+
+17. Important Honesty Point
+---------------------------
+Do not claim this is a real-time hospital system unless connected to real-time sensors.
+
+Correct statement:
+"This is a dataset-backed ICU monitoring prototype. It demonstrates how vital-sign data can be processed through an ML model to estimate patient stability."
+
+Avoid saying:
+"It shows live ECG."
+"It predicts from real-time patient monitors."
+"The 5-hour history is real."
+
+
+18. One-Line Pitch
+------------------
+CriticalCare is a dataset-backed ICU monitoring prototype that uses a Random Forest model to convert patient vital signs into a doctor-friendly stability score and risk dashboard.

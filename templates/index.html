@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="description" content="CriticalCare — AI-powered ICU patient monitoring dashboard with real-time vital sign analysis and risk prediction."/>
+  <title>CriticalCare — ICU Monitoring Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════════════════════════════ -->
+<header class="header">
+  <div class="header-brand">
+    <svg class="heartbeat" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    CriticalCare
+  </div>
+  <div class="header-center">
+    <span class="ward-badge">ICU Ward — Block A</span>
+    <div class="header-clock">
+      <span id="date-full">—</span>
+      <span class="time" id="date-time">--:--:--</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <a href="/logout" class="btn" title="Sign Out">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11 4.414l-4.293 4.293a1 1 0 01-1.414-1.414L11.586 7H7a1 1 0 110-2h6a1 1 0 011 1v6a1 1 0 11-2 0V7.414z" clip-rule="evenodd"/></svg>
+      Sign Out
+    </a>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SUMMARY STRIP
+═══════════════════════════════════════════════════════════════════ -->
+<section class="summary-strip">
+  <div class="stat-card total">
+    <div class="stat-icon">🏥</div>
+    <div class="stat-number" id="s-total">0</div>
+    <div class="stat-label">Total Patients</div>
+  </div>
+  <div class="stat-card stable">
+    <div class="stat-icon">💚</div>
+    <div class="stat-number" id="s-stable">0</div>
+    <div class="stat-label">Stable</div>
+  </div>
+  <div class="stat-card moderate">
+    <div class="stat-icon">⚠️</div>
+    <div class="stat-number" id="s-moderate">0</div>
+    <div class="stat-label">Moderate</div>
+  </div>
+  <div class="stat-card critical">
+    <div class="stat-icon">🚨</div>
+    <div class="stat-number" id="s-critical">0</div>
+    <div class="stat-label">Critical</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     VISUAL ANALYTICS
+═══════════════════════════════════════════════════════════════════ -->
+<section class="analytics-section">
+  <div class="analytics-card donut-card">
+    <div class="analytics-title">Patient Distribution</div>
+    <div class="donut-wrap">
+      <svg id="donut-chart" width="170" height="170" viewBox="0 0 170 170"></svg>
+      <div class="donut-center-label">
+        <span class="donut-total" id="donut-total">0</span>
+        <span class="donut-sub">patients</span>
+      </div>
+    </div>
+    <div class="donut-legend" id="donut-legend"></div>
+  </div>
+
+  <div class="analytics-card averages-card">
+    <div class="analytics-title">Ward Averages</div>
+    <div class="avg-grid" id="avg-grid"></div>
+  </div>
+
+  <div class="analytics-card chart-card">
+    <div class="analytics-title">Health Score by Bed</div>
+    <div class="bar-chart-wrap" id="bar-chart"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     FILTER BAR
+═══════════════════════════════════════════════════════════════════ -->
+<div class="filter-bar">
+  <div class="filter-tabs">
+    <button class="filter-tab active" data-filter="all" onclick="setFilter('all',this)">All</button>
+    <button class="filter-tab green" data-filter="green" onclick="setFilter('green',this)">🟢 Stable</button>
+    <button class="filter-tab yellow" data-filter="yellow" onclick="setFilter('yellow',this)">🟡 Moderate</button>
+    <button class="filter-tab red" data-filter="red" onclick="setFilter('red',this)">🔴 Critical</button>
+  </div>
+  <div class="search-box">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/></svg>
+    <input type="text" id="search-input" placeholder="Search patient or bed..." oninput="applyFilters()"/>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     BED GRID
+═══════════════════════════════════════════════════════════════════ -->
+<div class="section-title">Ward Overview <span>— click a bed to inspect</span></div>
+<div class="bed-grid" id="bed-grid"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     DETAIL PANEL (slide-in from right)
+═══════════════════════════════════════════════════════════════════ -->
+<div class="detail-overlay" id="detail-overlay">
+  <div class="detail-backdrop" onclick="closeDetail()"></div>
+  <div class="detail-panel">
+    <div class="detail-header">
+      <div>
+        <div class="detail-name" id="d-name">—</div>
+        <div class="detail-meta">
+          <span class="detail-tag" id="d-bed-tag">Bed —</span>
+          <span class="status-pill" id="d-pill">—</span>
+        </div>
+      </div>
+      <button class="btn-close-detail" onclick="closeDetail()">✕</button>
+    </div>
+
+    <!-- Score Gauge -->
+    <div class="gauge-section">
+      <div class="gauge-wrap">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
+          <circle id="gauge-arc" cx="60" cy="60" r="50" fill="none" stroke="var(--accent)" stroke-width="10"
+                  stroke-dasharray="314" stroke-dashoffset="314" stroke-linecap="round"
+                  style="transition:stroke-dashoffset .8s ease,stroke .5s"/>
+        </svg>
+        <div class="gauge-center">
+          <div class="gauge-value" id="d-score">—</div>
+          <div class="gauge-label">/ 100</div>
+        </div>
+      </div>
+      <div class="gauge-info">
+        <h4>Health Score</h4>
+        <div class="gauge-bar-track"><div class="gauge-bar-fill" id="d-bar"></div></div>
+        <div class="gauge-ends"><span>Critical</span><span>Stable</span></div>
+      </div>
+    </div>
+
+    <!-- Visual Monitoring -->
+    <div class="vitals-section-title">Current Dataset Vitals</div>
+    <div class="visual-monitor-grid">
+      <div class="monitor-card">
+        <div class="monitor-card-head">
+          <span>Respiratory Rate</span>
+          <strong id="resp-current">--/min</strong>
+        </div>
+        <svg class="line-chart" id="resp-chart" viewBox="0 0 360 150" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="monitor-card">
+        <div class="monitor-card-head">
+          <span>Stability Score</span>
+          <strong id="score-current">--/100</strong>
+        </div>
+        <svg class="line-chart" id="score-chart" viewBox="0 0 360 150" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="monitor-card">
+        <div class="monitor-card-head">
+          <span>Heart Rate</span>
+          <strong id="ecg-current">-- bpm</strong>
+        </div>
+        <svg class="ecg-chart" id="ecg-chart" viewBox="0 0 360 150" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="monitor-card">
+        <div class="monitor-card-head">
+          <span>Oxygen Saturation</span>
+          <strong id="spo2-current">--%</strong>
+        </div>
+        <svg class="line-chart" id="spo2-chart" viewBox="0 0 360 150" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="monitor-card">
+        <div class="monitor-card-head">
+          <span>Blood Pressure</span>
+          <strong id="bp-current">--/--</strong>
+        </div>
+        <svg class="line-chart" id="bp-chart" viewBox="0 0 360 150" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="monitor-card">
+        <div class="monitor-card-head">
+          <span>Body Temperature</span>
+          <strong id="temp-current">-- C</strong>
+        </div>
+        <svg class="line-chart" id="temp-chart" viewBox="0 0 360 150" preserveAspectRatio="none"></svg>
+      </div>
+    </div>
+
+    <!-- Vitals -->
+    <div class="vitals-section-title">Patient Vitals</div>
+    <div class="vitals-grid" id="d-vitals"></div>
+
+    <!-- Derived -->
+    <div class="vitals-section-title">Derived Indicators</div>
+    <div class="vitals-grid" id="d-derived"></div>
+
+    <!-- Actions -->
+    <div class="detail-actions">
+      <button class="btn btn-primary" onclick="openEditFromDetail()">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+        Edit Vitals
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     UPDATE VITALS MODAL
+═══════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-backdrop" onclick="closeModal()"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" style="color:var(--accent)"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+        Update Patient Vitals
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group full">
+        <label class="form-label">Bed Number</label>
+        <div style="display:flex;gap:8px">
+          <input class="form-input" type="number" id="f-bed" min="1" max="12" placeholder="1–12"/>
+          <button class="btn" onclick="loadVitals()" style="white-space:nowrap">Load</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Heart Rate <em>bpm</em></label>
+        <input class="form-input" type="number" id="f-hr" placeholder="72"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Resp. Rate <em>/min</em></label>
+        <input class="form-input" type="number" id="f-rr" placeholder="16"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Body Temp <em>°C</em></label>
+        <input class="form-input" type="number" id="f-temp" step="0.1" placeholder="37.0"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">O₂ Saturation <em>%</em></label>
+        <input class="form-input" type="number" id="f-spo2" step="0.1" placeholder="98"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Systolic BP <em>mmHg</em></label>
+        <input class="form-input" type="number" id="f-sbp" placeholder="120"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Diastolic BP <em>mmHg</em></label>
+        <input class="form-input" type="number" id="f-dbp" placeholder="80"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Age <em>yrs</em></label>
+        <input class="form-input" type="number" id="f-age" placeholder="35"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Gender</label>
+        <select class="form-input" id="f-gender">
+          <option value="0">Male</option>
+          <option value="1">Female</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Weight <em>kg</em></label>
+        <input class="form-input" type="number" id="f-weight" step="0.1" placeholder="70"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Height <em>m</em></label>
+        <input class="form-input" type="number" id="f-height" step="0.01" placeholder="1.70"/>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="btn-predict" onclick="submitVitals()">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/></svg>
+        Run Model & Update
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- FAB Button -->
+<button class="fab" onclick="openModal()" title="Update Patient Vitals">+</button>
+
+<script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
