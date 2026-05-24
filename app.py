@@ -314,6 +314,5 @@ def get_stats():
         "score_distribution": [p["score"] for p in sorted(vals, key=lambda x: x["bed"])],
     })
 
-
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=5000)
