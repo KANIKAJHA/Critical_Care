@@ -313,6 +313,5 @@ def get_stats():
         "avg_sbp": avg(vals, "systolic_bp"),
         "score_distribution": [p["score"] for p in sorted(vals, key=lambda x: x["bed"])],
     })
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run()
